@@ -48,8 +48,7 @@ from ml_models.models import (
 from utils.recommendations import get_recommendations
 from integrations.adb_integration import (
     check_adb_connected, generate_simulated_mobile_data,
-    get_real_mobile_data, process_usage_stats, simulate_app_usage_data,
-    get_mobile_usage_summary, analyze_mobile_patterns
+    fetch_real_mobile_data, build_risk_profile_from_real
 )
 from utils.ocr_utils import extract_data_from_image, build_profile_from_ocr
 
