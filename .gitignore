@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project-specific exclusions
+data/users.db
+data/*.sqlite
+data/*.db
+tesseract_installer.exe
+scan_results.txt
+usagestats_dump.txt
+test_usagestats.py
+fix_scan.py
+.idea/
