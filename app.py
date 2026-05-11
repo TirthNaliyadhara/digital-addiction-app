@@ -1611,7 +1611,8 @@ If it works, continue to the phone setup steps below.
             st.markdown("<br><br>", unsafe_allow_html=True)
             day_label = f"{days_filter}-Day" if days_filter > 1 else "1-Day"
             st.write(f"**Key Extracted Phone Metrics ({day_label} Weighted):**")
-            st.metric("📅 Avg Screen Time", f"{profile.get('total_screen_time', 0)} hrs")
+            st.metric("� Total Screen Time", f"{profile.get('total_screen_time', 0) * days_filter:.1f} hrs")
+            st.metric("�📅 Avg Screen Time", f"{profile.get('total_screen_time', 0)} hrs")
             st.metric("🔔 Est. Daily Notifications", profile['notifications_per_day'])
             st.metric("😰 FOMO Score", f"{profile['fomo_score']}/10")
             st.metric("😟 Anxiety Correlation", f"{profile['anxiety_score']}/10")
