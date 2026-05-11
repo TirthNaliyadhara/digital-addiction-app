@@ -10,13 +10,18 @@
 digital_addiction_app/
 ├── app.py                        # Main Streamlit application
 ├── requirements.txt              # Python dependencies
-├── adb_integration.py            # Android ADB + simulation module
+├── .env.example                  # Environment variables template
+├── integrations/
+│   ├── __init__.py
+│   └── adb_integration.py        # Android ADB + simulation module
 ├── auth/
 │   ├── __init__.py
 │   └── auth.py                   # Login, signup, session, SQLite
 ├── data/
+│   ├── __init__.py
 │   └── users.db                  # Auto-created SQLite database
 ├── dataset/
+│   ├── __init__.py
 │   └── sample_data.csv           # Your 20,000-record dataset
 ├── ml_models/
 │   ├── __init__.py
@@ -26,8 +31,9 @@ digital_addiction_app/
 │   └── analyzer.py               # Behavioral metrics, anomaly detection
 └── utils/
     ├── __init__.py
-    ├── data_loader.py             # CSV parsing + feature engineering
-    └── recommendations.py        # Personalized recommendation engine
+    ├── data_loader.py            # CSV parsing + feature engineering
+    ├── recommendations.py        # Personalized recommendation engine
+    └── ocr_utils.py              # OCR data extraction utilities
 ```
 
 ---

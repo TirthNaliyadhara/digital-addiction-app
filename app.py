@@ -46,13 +46,12 @@ from ml_models.models import (
     compute_risk_score, classify_risk
 )
 from utils.recommendations import get_recommendations
-from adb_integration import (
+from integrations.adb_integration import (
     check_adb_connected, generate_simulated_mobile_data,
-    fetch_real_mobile_data, build_risk_profile_from_real, get_adb_device_info,
-    fetch_adb_battery, fetch_adb_screen_state,
-    get_adb_status, AdbStatus, _find_adb, diagnose_adb_data_fetch,
+    get_real_mobile_data, process_usage_stats, simulate_app_usage_data,
+    get_mobile_usage_summary, analyze_mobile_patterns
 )
-from ocr_utils import extract_data_from_image, build_profile_from_ocr
+from utils.ocr_utils import extract_data_from_image, build_profile_from_ocr
 
 
 
