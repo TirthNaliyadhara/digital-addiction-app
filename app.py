@@ -50,7 +50,7 @@ from integrations.adb_integration import (
     check_adb_connected, generate_simulated_mobile_data,
     fetch_real_mobile_data, build_risk_profile_from_real,
     get_adb_status, get_adb_device_info, fetch_adb_battery,
-    fetch_adb_screen_state
+    fetch_adb_screen_state, AdbStatus, diagnose_adb_data_fetch
 )
 from utils.ocr_utils import extract_data_from_image, build_profile_from_ocr
 
@@ -1250,7 +1250,6 @@ def page_mobile_connect():
     st.title("📱 Mobile Device Intelligence")
 
     status, raw_output = get_adb_status()
-    adb_path = _find_adb()
 
     # ── NOT INSTALLED ─────────────────────────────────────────────────────────
     if status == AdbStatus.NOT_INSTALLED:
