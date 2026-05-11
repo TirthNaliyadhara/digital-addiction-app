@@ -1,4 +1,3 @@
-
 import subprocess
 import pandas as pd
 import numpy as np
@@ -541,7 +540,7 @@ def _parse_usagestats_samsung_events(out: str, third_party: set[str]) -> list[di
 
 def _parse_usagestats_7days(uid_map: dict[int, str],
                              third_party: set[str],
-                             debug: bool = False) -> list[dict]:
+                             debug: bool = True) -> list[dict]:
     """
     Parse `dumpsys usagestats` to get per-day usage for the last 7 days.
 
@@ -606,6 +605,8 @@ def _parse_usagestats_7days(uid_map: dict[int, str],
         nonlocal current_pkg, current_time_ms, current_last_ms, current_launches
         if current_pkg and current_time_ms > 0:
             usage_min = round(current_time_ms / 60_000, 2)
+            if debug:
+                print(f"[DEBUG] Parsed: {current_pkg} -> {current_time_ms}ms -> {usage_min}min")
             if usage_min >= 0.5 and _is_user_app(current_pkg, third_party):
                 # Assign date from last-used timestamp if available
                 if current_last_ms > 0:
@@ -618,18 +619,25 @@ def _parse_usagestats_7days(uid_map: dict[int, str],
                 try:
                     row_dt = datetime.strptime(row_date, "%Y-%m-%d")
                     if row_dt < cutoff:
+                        if debug:
+                            print(f"[DEBUG] Skipping {current_pkg} - too old: {row_date}")
                         current_pkg = None
                         current_time_ms = current_last_ms = current_launches = 0
                         return
                 except Exception:
                     pass
 
+                if debug:
+                    print(f"[DEBUG] Adding row: {current_pkg} -> {usage_min}min on {row_date}")
                 rows.append({
                     "package":        current_pkg,
                     "usage_time_min": usage_min,
                     "session_count":  max(1, current_launches),
                     "date":           row_date,
                 })
+            else:
+                if debug:
+                    print(f"[DEBUG] Skipping {current_pkg}: usage_min={usage_min}, is_user_app={_is_user_app(current_pkg, third_party)}")
         current_pkg = None
         current_time_ms = current_last_ms = current_launches = 0
 
