@@ -361,6 +361,7 @@ PACKAGE_MAP: dict[str, tuple[str, str]] = {
     "tv.twitch.android.app":                   ("Twitch",           "Streaming"),
     "com.google.android.apps.youtube.music":   ("YouTube Music",    "Streaming"),
     "com.google.android.videos":               ("Google TV",        "Streaming"),
+    "org.videolan.vlc":                        ("VLC",              "Streaming"),
     # Gaming
     "com.activision.callofduty.shooter":       ("Call of Duty",     "Gaming"),
     "com.garena.game.freefire":                ("Free Fire",        "Gaming"),
@@ -890,6 +891,7 @@ def fetch_real_mobile_data(debug: bool = True) -> tuple:
             ("WhatsApp", "Messaging", 45.0, 25),
             ("Instagram", "Social", 35.0, 18),
             ("YouTube", "Streaming", 28.0, 12),
+            ("VLC", "Streaming", 25.0, 10),
             ("Chrome", "Browsing", 22.0, 15),
             ("Gmail", "Productivity", 15.0, 8),
         ]
