@@ -1364,8 +1364,6 @@ If it works, continue to the phone setup steps below.
             "✅ Good news — ADB is installed correctly. Now connect your phone "
             "and enable Developer Mode + USB Debugging."
         )
-        if adb_path:
-            st.caption(f"ADB found at: `{adb_path}`")
 
         with st.expander("📖 Step 1 — Enable Developer Options on your phone", expanded=True):
             st.markdown("""
