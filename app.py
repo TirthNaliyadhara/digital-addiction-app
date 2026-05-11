@@ -152,8 +152,8 @@ def show_sidebar(user_info):
 
         pages = ["Overview", "Advanced Dashboard", "Behavior Intelligence",
                  "ML Predictions", "Risk Scoring Engine", "Recommendation Engine",
-                 "Samsung Support", "Settings / Profile", "AI Chatbot", "About"]
-        icons = ["bar-chart-line", "graph-up", "activity", "robot", "lightning", "lightbulb", "plus-circle", "gear", "chat-dots", "info-circle"]
+                 "Settings / Profile", "AI Chatbot", "About"]
+        icons = ["bar-chart-line", "graph-up", "activity", "robot", "lightning", "lightbulb", "gear", "chat-dots", "info-circle"]
 
         if user_info['role'] == 'Admin':
             pages.append("Admin Panel")
@@ -1692,160 +1692,7 @@ If it works, continue to the phone setup steps below.
             st.rerun()
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# MODULE: SAMSUNG / MANUAL SUPPORT
-# ══════════════════════════════════════════════════════════════════════════════
 
-def page_samsung_support(df):
-    st.title("🔧 Samsung & Manual Data Support")
-    st.markdown("""
-    Some devices (especially Samsung) may have restrictions that prevent data fetching via ADB.
-    Use this page to provide your usage data manually or via screenshots.
-    """)
-
-    tab1, tab2, tab3 = st.tabs([
-        "📸 Option 1: Upload Screenshots (OCR)",
-        "📝 Option 2: Manual Data Entry",
-        "⚙️ Samsung ADB Troubleshooting"
-    ])
-
-    with tab3:
-        st.subheader("Fixing Samsung ADB Connection Issues")
-        st.markdown("""
-        Samsung devices have additional security restrictions that often prevent ADB data fetching.
-        Follow these steps to enable full data access:
-        """)
-
-        with st.expander("Step 1: Enable 'USB Debugging (Security Settings)'", expanded=True):
-            st.markdown("""
-            On Samsung devices, there's an **additional** setting beyond regular USB Debugging:
-
-            1. Go to **Settings → Developer Options**
-            2. Scroll down and find **"USB Debugging (Security Settings)"**
-            3. **Enable it** and confirm any prompts
-            4. This allows ADB to access app usage data (required for Samsung)
-            """)
-
-        with st.expander("Step 2: Disable Battery Optimization for Usage Stats"):
-            st.markdown("""
-            Samsung's battery optimization can block usage stats collection:
-
-            1. Go to **Settings → Battery and Device Care → Battery**
-            2. Tap **Background Usage Limits**
-            3. Find **"Android System"** or **"Usage Stats"** service
-            4. Set it to **"Not Optimized"**
-            5. Alternatively, go to **Settings → Apps → Show System Apps**
-            6. Find **"Usage Stats"** or **"Usage Data Access"**
-            7. Set **Battery → Unrestricted**
-            """)
-
-        with st.expander("Step 3: Grant Usage Stats Permission via ADB"):
-            st.markdown("""
-            If the above doesn't work, try granting permissions manually via ADB:
-
-            ```bash
-            # Grant usage stats permission to the shell
-            adb shell pm grant com.android.shell android.permission.PACKAGE_USAGE_STATS
-
-            # For Samsung devices, also try:
-            adb shell settings put global restricted_device_id null
-            ```
-
-            Run these commands in Command Prompt or PowerShell with your phone connected.
-            """)
-
-        with st.expander("Step 4: Check for Knox or MDM Restrictions"):
-            st.markdown("""
-            Samsung Knox or corporate MDM policies may block ADB access:
-
-            1. Go to **Settings → About Phone → Software Information**
-            2. Look for **"Knox Version"** - if present, Knox may be restricting access
-            3. If your device is managed by an organization (work profile), ADB may be disabled
-            4. For corporate devices, contact your IT administrator
-            """)
-
-        st.info("""
-        **Still not working?** After completing these steps:
-        1. Unplug and re-plug your USB cable
-        2. Wait 2-3 minutes for usage data to accumulate
-        3. Try fetching data again from the Mobile Device Intelligence page
-        4. Use the **🔍 Run Diagnostics** button if available to see detailed error information
-        """)
-
-    with tab1:
-        st.subheader("Extract Data from Screenshots")
-        st.info("Open **Settings > Digital Wellbeing** on your phone and take a screenshot of the main usage dashboard.")
-        
-        uploaded_file = st.file_uploader("Upload Digital Wellbeing Screenshot", type=["png", "jpg", "jpeg"])
-        
-        if uploaded_file:
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Screenshot", width="stretch")
-            
-            if st.button("🔍 Extract Data with AI (OCR)", type="primary"):
-                with st.spinner("Processing image..."):
-                    results, err = extract_data_from_image(image)
-                    
-                    if err:
-                        st.error(err)
-                        if "Tesseract" in err:
-                            st.markdown("""
-                            > **Tip:** If Tesseract is not installed, you can still use **Option 2: Manual Data Entry** to provide the numbers yourself.
-                            """)
-                    else:
-                        st.success("✅ Data extracted successfully!")
-                        
-                        # Show extracted data in columns
-                        c1, c2, c3 = st.columns(3)
-                        ext_st = c1.number_input("Extracted Screen Time (hrs)", value=float(results['total_screen_time']), step=0.1)
-                        ext_notif = c2.number_input("Extracted Notifications", value=int(results['notifications_per_day']))
-                        ext_pickups = c3.number_input("Extracted Unlocks (as pickups/hr)", value=float(results['phone_pickups_per_hour']), step=0.1)
-                        
-                        if st.button("🚀 Sync to Analysis Dashboard", key="sync_ocr"):
-                            profile = build_profile_from_ocr({
-                                'total_screen_time': ext_st,
-                                'notifications_per_day': ext_notif,
-                                'phone_pickups_per_hour': ext_pickups
-                            })
-                            st.session_state['phone_profile'] = profile
-                            st.session_state['sidebar_data_mode'] = "Simulated Mobile"
-                            st.success("Analysis updated! Navigate to 'Overview' or 'ML Predictions' to see your results.")
-
-    with tab2:
-        st.subheader("Manual Data Entry Form")
-        st.markdown("Fill in the values from your phone's Digital Wellbeing dashboard.")
-        
-        with st.form("manual_entry_form"):
-            m1, m2 = st.columns(2)
-            with m1:
-                m_st = st.slider("Total Screen Time (hrs)", 0.0, 24.0, 8.0, 0.5)
-                m_nu = st.slider("Nighttime Usage (hrs)", 0.0, 8.0, 1.5, 0.1)
-                m_notif = st.number_input("Notifications per Day", 0, 1000, 150)
-                m_binge = st.slider("Binge Sessions / Week", 0, 50, 5)
-            with m2:
-                m_fomo = st.slider("FOMO Score (1-10)", 1, 10, 5)
-                m_anx = st.slider("Anxiety Score (1-10)", 1, 10, 5)
-                m_pickup = st.slider("Phone Pickups / Hour", 0, 100, 20)
-                m_sleep = st.slider("Sleep Hours", 0.0, 15.0, 7.0, 0.5)
-            
-            submitted = st.form_submit_button("Update AI Profile", type="primary", width="stretch")
-            
-            if submitted:
-                profile = {
-                    'total_screen_time': m_st,
-                    'nighttime_usage': m_nu,
-                    'notifications_per_day': m_notif,
-                    'binge_sessions_per_week': m_binge,
-                    'fomo_score': m_fomo,
-                    'anxiety_score': m_anx,
-                    'phone_pickups_per_hour': m_pickup,
-                    'sleep_hours': m_sleep,
-                    'productivity_score': 5.0, # Default
-                    'sleep_disruption_score': 5.0 # Default
-                }
-                st.session_state['phone_profile'] = profile
-                st.session_state['sidebar_data_mode'] = "Simulated Mobile"
-                st.success("✅ Profile updated manually! All dashboard predictions will now use this data.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1893,8 +1740,6 @@ def main():
         page_risk_scoring(df)
     elif "Recommendation" in page:
         page_recommendations(df)
-    elif "Samsung Support" in page:
-        page_samsung_support(df)
     elif "Settings" in page:
         page_settings(df, user_info)
     elif "Chatbot" in page:
