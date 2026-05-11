@@ -1506,17 +1506,21 @@ If it works, continue to the phone setup steps below.
         if df_filtered.empty:
             st.info(f"No usage data found for the last {days_filter} days.")
         else:
+            # Aggregate all apps — no head() cap so every app is visible
+            all_apps = df_filtered.groupby('app_name')['usage_time_min'].sum().reset_index()
+            all_apps = all_apps.sort_values('usage_time_min', ascending=False)
+            n_apps = len(all_apps)
+
             c1, c2 = st.columns(2)
             with c1:
-                top_n = df_filtered.groupby('app_name')['usage_time_min'].sum().reset_index()
-                top_n = top_n.sort_values('usage_time_min', ascending=False).head(10)
-
+                # Dynamic height: at least 400px, then 28px per app
+                bar_height = max(400, n_apps * 28)
                 fig_bar = px.bar(
-                    top_n, x='usage_time_min', y='app_name', orientation='h',
+                    all_apps, x='usage_time_min', y='app_name', orientation='h',
                     color='usage_time_min', color_continuous_scale='Blues',
-                    title=f'Top 10 Apps by Usage (Last {days_filter} Days)', text_auto='.1f'
+                    title=f'All {n_apps} Apps by Usage (Last {days_filter} Days)', text_auto='.1f'
                 )
-                fig_bar.update_layout(height=380, yaxis={'categoryorder': 'total ascending'})
+                fig_bar.update_layout(height=bar_height, yaxis={'categoryorder': 'total ascending'})
                 st.plotly_chart(fig_bar, width="stretch")
 
             with c2:
@@ -1529,7 +1533,7 @@ If it works, continue to the phone setup steps below.
                 fig_pie.update_layout(height=380)
                 st.plotly_chart(fig_pie, width="stretch")
 
-            # Sessions vs Usage scatter
+            # Sessions vs Usage scatter (all apps)
             agg_df = df_filtered.groupby(['app_name', 'category']).agg({
                 'usage_time_min': 'sum',
                 'session_count': 'sum'
@@ -1538,9 +1542,25 @@ If it works, continue to the phone setup steps below.
             fig_scatter = px.scatter(
                 agg_df, x='usage_time_min', y='session_count', color='category',
                 size='usage_time_min', hover_name='app_name',
-                title='Sessions vs Usage Time per App'
+                title='Sessions vs Usage Time per App (All Apps)'
             )
             st.plotly_chart(fig_scatter, width="stretch")
+
+            # ── Full App Usage Table ───────────────────────────────────────────
+            st.markdown("---")
+            st.subheader(f"📋 Complete App Usage List ({n_apps} apps detected)")
+            display_df = agg_df.copy()
+            display_df['usage_time_min'] = display_df['usage_time_min'].round(1)
+            display_df['usage_hrs'] = (display_df['usage_time_min'] / 60).round(2)
+            display_df = display_df.rename(columns={
+                'app_name': 'App',
+                'category': 'Category',
+                'usage_time_min': 'Usage (min)',
+                'usage_hrs': 'Usage (hrs)',
+                'session_count': 'Sessions',
+            }).sort_values('Usage (min)', ascending=False).reset_index(drop=True)
+            display_df.index += 1  # 1-based rank
+            st.dataframe(display_df, use_container_width=True, height=400)
 
         st.markdown("---")
         st.subheader("🧠 Section 2: Behavior Intelligence & Risk Classification")
@@ -1611,8 +1631,8 @@ If it works, continue to the phone setup steps below.
             st.markdown("<br><br>", unsafe_allow_html=True)
             day_label = f"{days_filter}-Day" if days_filter > 1 else "1-Day"
             st.write(f"**Key Extracted Phone Metrics ({day_label} Weighted):**")
-            st.metric("� Total Screen Time", f"{profile.get('total_screen_time', 0) * days_filter:.1f} hrs")
-            st.metric("�📅 Avg Screen Time", f"{profile.get('total_screen_time', 0)} hrs")
+            st.metric("📺 Total Screen Time", f"{profile.get('total_screen_time', 0) * days_filter:.1f} hrs")
+            st.metric("📊 Avg Screen Time / Day", f"{profile.get('total_screen_time', 0)} hrs")
             st.metric("🔔 Est. Daily Notifications", profile['notifications_per_day'])
             st.metric("😰 FOMO Score", f"{profile['fomo_score']}/10")
             st.metric("😟 Anxiety Correlation", f"{profile['anxiety_score']}/10")
